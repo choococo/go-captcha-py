@@ -211,6 +211,11 @@ def test_gen_key_unique():
 
 
 def test_e2e_click_success_and_failure(fastapi_client):
+    shape_response = fastapi_client.get("/captcha/click?shape=true")
+    assert shape_response.status_code == 200
+    shape_payload = shape_response.json()
+    assert shape_payload["captcha_id"] and shape_payload["image_base64"] and shape_payload["thumb_base64"]
+
     r = fastapi_client.get("/captcha/click")
     assert r.status_code == 200
     d = r.json()

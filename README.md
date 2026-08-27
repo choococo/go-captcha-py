@@ -110,6 +110,17 @@ capt = click.make_default_shape_captcha()   # 13 个内置图形素材
 data = capt.generate()
 ```
 
+图形模式与文字模式使用相同的点击流程：缩略图显示需要依次点击的图形，主图显示随机分布的全部图形，后端仍然通过 `data.get_data()` 保存并校验目标坐标。
+
+![图形点击主图](docs/images/click-shape-master.jpg)
+![图形点击目标缩略图](docs/images/click-shape-thumb.png)
+
+FastAPI 示例中通过查询参数切换到图形模式：
+
+```text
+GET /captcha/click?shape=true
+```
+
 ## FastAPI 集成示例
 
 完整可运行示例见 [`examples/fastapi_server.py`](examples/fastapi_server.py)：
