@@ -1,0 +1,15 @@
+{
+  "name": "go-captcha-react-demo",
+  "private": true,
+  "type": "module",
+  "scripts": { "dev": "vite --port 5174" },
+  "dependencies": {
+    "go-captcha-react": "^1.0.5",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-react": "^4.3.1",
+    "vite": "^5.4.8"
+  }
+}

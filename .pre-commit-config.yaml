@@ -1,0 +1,39 @@
+# See https://pre-commit.com for more information
+# See https://pre-commit.com/hooks.html for more hooks
+repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v5.0.0
+    hooks:
+      - id: trailing-whitespace
+        exclude: ^docs/images/
+      - id: end-of-file-fixer
+        exclude: ^docs/images/|\.(jpg|png|ttf|ico)$
+      - id: check-yaml
+      - id: check-toml
+      - id: check-json
+        exclude: ^examples/vue-demo/package-lock\.json$|angular-demo/angular-app/tsconfig
+      - id: check-merge-conflict
+      - id: check-added-large-files
+        args: ["--maxkb=1024"]
+        exclude: ^docs/images/|resources/
+      - id: mixed-line-ending
+        args: ["--fix=lf"]
+
+  # Ruff: lint + format (matches ruff.toml in repo root)
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.16.4
+    hooks:
+      - id: ruff
+        args: [--fix, --exit-non-zero-on-fix]
+      - id: ruff-format
+
+  # Basic hygiene for the Vue demo
+  - repo: local
+    hooks:
+      - id: pytest
+        name: pytest (unit + http e2e)
+        entry: uv run --extra fastapi pytest tests/ -q
+        language: system
+        pass_filenames: false
+        types: [python]
+        stages: [pre-push]  # run full tests pre-push, not every commit

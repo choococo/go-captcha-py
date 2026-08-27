@@ -1,0 +1,91 @@
+[project]
+name = "go-captcha-py"
+version = "0.1.0"
+description = "Python implementation of GoCaptcha (behavior captcha: click / slide / drag-drop / rotate), compatible with go-captcha frontends (Vue/React/Angular/Svelte/Solid/JS)"
+readme = "README.md"
+authors = [
+    { name = "choococo" }
+]
+license = "Apache-2.0"
+license-files = ["LICENSE"]
+requires-python = ">=3.10"
+keywords = ["captcha", "behavior-captcha", "verification", "fastapi", "gocaptcha"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3 :: Only",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Topic :: Security",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+]
+dependencies = [
+    "pillow>=10.0",
+]
+
+[project.optional-dependencies]
+fastapi = [
+    "fastapi>=0.115",
+    "uvicorn>=0.30",
+]
+
+[project.urls]
+Homepage = "https://github.com/choococo/go-captcha-py"
+Repository = "https://github.com/choococo/go-captcha-py"
+Issues = "https://github.com/choococo/go-captcha-py/issues"
+Upstream = "https://github.com/wenlng/go-captcha"
+
+[project.scripts]
+go-captcha-py = "go_captcha_py.cli:main"
+
+[build-system]
+requires = ["uv_build>=0.12.5,<0.13.0"]
+build-backend = "uv_build"
+
+[tool.uv.build-backend]
+module-name = "go_captcha_py"
+
+[dependency-groups]
+dev = [
+    "httpx>=0.28.1",
+    "pre-commit>=4.6.2",
+    "pytest>=9.1.1",
+    "python-multipart>=0.0.32",
+    "ruff>=0.16.4",
+]
+
+# ---------------------------------------------------------------------------
+# Ruff — docs: https://docs.astral.sh/ruff/configuration/
+# ---------------------------------------------------------------------------
+
+[tool.ruff]
+target-version = "py310"
+line-length = 110
+extend-exclude = ["examples/vue-demo", "dist"]
+
+[tool.ruff.lint]
+select = [
+    "E",   # pycodestyle errors
+    "W",   # pycodestyle warnings
+    "F",   # pyflakes
+    "I",   # isort (import sorting)
+    "B",   # flake8-bugbear (likely bugs)
+    "UP",  # pyupgrade (modern syntax)
+    "SIM", # flake8-simplify
+    "RUF", # ruff-specific rules
+]
+ignore = [
+    "E501",  # line too long — long comments/urls acceptable, formatter handles code
+    "B008",  # function call in default arg — FastAPI Depends/Query pattern
+]
+
+[tool.ruff.lint.isort]
+known-first-party = ["go_captcha_py"]
+
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "space"

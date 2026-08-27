@@ -1,0 +1,28 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+dist/
+build/
+.pytest_cache/
+.ruff_cache/
+coverage.xml
+htmlcov/
+.coverage
+
+# Node
+node_modules/
+examples/vue-demo/dist/
+
+# Local configuration and generated demo output
+.env
+.env.*
+!.env.example
+captcha-output/
+*.log
+
+# OS / IDE
+.DS_Store
+.idea/
+.vscode/

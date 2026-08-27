@@ -1,0 +1,23 @@
+services:
+  gocaptcha-api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: go-captcha-py:local
+    environment:
+      GOCAPTCHA_DEBUG: "0"
+    ports:
+      - "9000:9000"
+    restart: unless-stopped
+    healthcheck:
+      test:
+        - CMD
+        - /app/.venv/bin/python
+        - -c
+        - >-
+          import urllib.request;
+          urllib.request.urlopen('http://127.0.0.1:9000/docs', timeout=3)
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s

@@ -1,0 +1,14 @@
+{
+  "name": "go-captcha-svelte-demo",
+  "private": true,
+  "type": "module",
+  "scripts": { "dev": "vite --port 5181 --strictPort" },
+  "dependencies": {
+    "go-captcha-svelte": "^1.0.6"
+  },
+  "devDependencies": {
+    "@sveltejs/vite-plugin-svelte": "^3.1.2",
+    "svelte": "^4.2.19",
+    "vite": "^5.4.8"
+  }
+}
