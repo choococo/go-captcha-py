@@ -17,7 +17,7 @@
 - **3498 字汉字库**：内置上游完整常用字集，每次生成完全随机；另有字母 / 字母数字混合预设
 - **可读性保障**：文字仅做随机旋转（BICUBIC 抗锯齿，无透视变形），且自动检测与背景的亮度对比，低对比时在调色板及黑白回退色中重选——杜绝"看不清的字"
 - **协议兼容**：`Dot` / `Block` 字段名与 Go 版 JSON tag 一致，直接对接 go-captcha-vue@^1 等官方前端
-- **校验容差**：`click.Validate` / `slide.Validate` / `rotate.Validate` 与 Go 版语义一致
+- **校验逻辑对齐 Go 版**：Python API `click.validate`、`slide.validate`、`rotate.validate` 分别复现 Go 版对应的 `Validate` 逻辑；各模式的容差范围和角度计算遵循 Go 版实现
 - **纯 Python 依赖**：仅依赖 [Pillow](https://python-pillow.org/)，支持 **Python 3.10+**（3.10 / 3.13 实测通过），无 CGO / 无系统库
 - **可嵌入**：核心库零 Web 框架依赖，可集成进 FastAPI / Flask / Django / gRPC 等任意后端
 
