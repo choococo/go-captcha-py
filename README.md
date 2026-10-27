@@ -18,10 +18,12 @@
 - **可读性保障**：文字仅做随机旋转（BICUBIC 抗锯齿，无透视变形），且自动检测与背景的亮度对比，低对比时在调色板及黑白回退色中重选——杜绝"看不清的字"
 - **协议兼容**：`Dot` / `Block` 字段名与 Go 版 JSON tag 一致，直接对接 go-captcha-vue@^1 等官方前端
 - **校验逻辑对齐 Go 版**：Python API `click.validate`、`slide.validate`、`rotate.validate` 分别复现 Go 版对应的 `Validate` 逻辑；各模式的容差范围和角度计算遵循 Go 版实现
-- **纯 Python 依赖**：仅依赖 [Pillow](https://python-pillow.org/)，支持 **Python 3.10+**（3.10 / 3.13 实测通过），无 CGO / 无系统库
+- **纯 Python 依赖**：仅依赖 [Pillow](https://python-pillow.org/)，要求 **Python 3.11+、Pillow 13.0.0+**，无 CGO / 无系统库
 - **可嵌入**：核心库零 Web 框架依赖，可集成进 FastAPI / Flask / Django / gRPC 等任意后端
 
 ## 安装
+
+当前仓库要求 **Python >=3.11、Pillow >=13.0.0**，安装工具会根据 `pyproject.toml` 检查这些要求。Pillow 13 已移除 Python 3.10 支持，因此本项目也不再支持 Python 3.10。升级原因和旧环境处理方法见下方[安全说明](#安全说明pillow)。
 
 **pip：**
 
@@ -44,6 +46,55 @@ git clone https://github.com/choococo/go-captcha-py.git
 cd go-captcha-py
 uv sync --extra fastapi   # 或只装核心: uv sync
 ```
+
+## 安全说明：Pillow
+
+### 安全版本要求与影响范围
+
+2026-10-27 检查时，本仓库原锁定的 Pillow **12.3.0** 命中近期多项安全公告。当前依赖下限已提高至 **13.0.0**，以纳入这批修复；这不代表该版本能够免受未来披露的漏洞影响，应持续关注 [Pillow 官方安全公告](https://github.com/python-pillow/Pillow/security/advisories)。
+
+以下列出主要漏洞及触发条件，完整修复列表见 [Pillow 13.0.0 官方发布说明](https://pillow.readthedocs.io/en/stable/releasenotes/13.0.0.html)：
+
+| 漏洞 / 公告 | 受影响版本 | 触发条件与风险 | 修复版本 |
+| --- | --- | --- | --- |
+| [CVE-2026-112398：FPX 解码堆溢出](https://github.com/python-pillow/Pillow/security/advisories/GHSA-5x8w-8jj5-q52h) | <=12.3.0 | 安装可选 `olefile` 后处理恶意 FPX 图片，可导致代码执行 | 13.0.0 |
+| [CVE-2026-96639：多帧图像缓冲区复用](https://github.com/python-pillow/Pillow/security/advisories/GHSA-v9pv-5gc8-w2m6) | >=11.0.0，<=12.3.0 | 恶意多帧图片切换模式后解码，可导致越界写入，部分路径已证明可执行代码 | 13.0.0 |
+| [CVE-2026-112403：JPEG 缩放解码堆溢出](https://github.com/python-pillow/Pillow/security/advisories/GHSA-8g5g-8vmr-9782) | <=12.3.0 | 使用 libjpeg-turbo >=3.0，且对恶意无损 JPEG 调用 `draft()` / `thumbnail()` 缩放解码 | 13.0.0 |
+| [CVE-2026-112900：EPS / Ghostscript 参数注入](https://github.com/python-pillow/Pillow/security/advisories/GHSA-w889-685w-c8fh) | 2.6.0–12.3.0 | 攻击者控制 EPS 文件名；额外条件满足时可导致代码执行 | 13.0.0 |
+
+默认验证码只读取包内图片和字体，FastAPI 示例不接收用户上传图片或远程图片 URL；目前未发现上述漏洞通过默认接口被远程触发的路径。若集成方使用自定义素材、用户上传或远程下载图片，需要重新评估输入来源及解码流程。只检查文件扩展名不能代替升级。
+
+FastAPI 示例也已隔离点击、滑动和旋转验证码的服务端答案，避免拿一种验证码的 ID 到另一种校验接口取得成功。使用本库接入自己的服务时，也应将验证码类型和答案一起绑定到服务端保存的挑战记录中。
+
+### 升级与部署
+
+先将 Python 3.10 环境迁移到 **Python 3.11 或以上**，再更新依赖。不要为了保留 Python 3.10 而把旧 Pillow 当作已修复版本。
+
+已有 pip 环境（包括安装了本库旧发行版的环境）：
+
+```bash
+python -m pip install --upgrade "Pillow>=13.0.0"
+python -m pip check
+```
+
+在使用 uv 的集成项目中显式添加安全下限，并更新其锁文件：
+
+```bash
+uv add "pillow>=13.0.0"
+uv sync --locked
+```
+
+本仓库的 `uv.lock` 已同步更新。拉取当前代码后安装并验证：
+
+```bash
+uv sync --locked --extra fastapi
+uv run --locked python -c "import sys, PIL; print(sys.version); print(PIL.__version__)"
+uv run --locked pytest tests/ -q
+```
+
+容器或其他部署环境还需用更新后的锁文件重新构建部署产物，并替换旧实例；仅升级宿主机不会更新已运行镜像中的 Pillow。
+
+部署后应在实际运行环境确认 Pillow **>=13.0.0**，并回归文字点击、图形点击、滑动、拖拽及旋转验证码的生成与校验。发布本库新版本时也应保留依赖下限：下游 `pip install` 通常不会读取本仓库的 `uv.lock`，不能仅靠锁文件约束其安装版本。
 
 ## 快速开始
 

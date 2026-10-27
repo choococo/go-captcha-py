@@ -246,6 +246,30 @@ def test_e2e_slide_and_rotate(fastapi_client):
     )
     assert "captcha_verified" in r.json()
 
+
+def test_e2e_captcha_ids_cannot_be_verified_as_another_type(fastapi_client):
+    generators = {
+        "/captcha/click": "/captcha/click/verify",
+        "/captcha/slide": "/captcha/slide/verify",
+        "/captcha/rotate": "/captcha/rotate/verify",
+    }
+    verifications = {
+        "/captcha/click/verify": {"dots": "0,0;0,0;0,0"},
+        "/captcha/slide/verify": {"point": "0,0"},
+        "/captcha/rotate/verify": {"angle": 0},
+    }
+
+    for generator, matching_verification in generators.items():
+        captcha_id = fastapi_client.get(generator).json()["captcha_id"]
+        for verification, payload in verifications.items():
+            if verification == matching_verification:
+                continue
+            response = fastapi_client.post(
+                verification,
+                data={**payload, "captcha_id": captcha_id},
+            )
+            assert response.status_code == 403, (generator, verification, response.text)
+
     r = fastapi_client.get("/captcha/rotate")
     assert r.status_code == 200
     r = fastapi_client.post(

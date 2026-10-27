@@ -29,7 +29,7 @@ from go_captcha_py import click, rotate, slide, store
 # tests only. NEVER enable in production.
 DEBUG = os.environ.get("GOCAPTCHA_DEBUG") == "1"
 
-app = FastAPI(title="go-captcha-py example server", version="0.1.0")
+app = FastAPI(title="go-captcha-py example server", version="0.1.1")
 
 app.add_middleware(
     CORSMiddleware,
@@ -53,6 +53,11 @@ SLIDE_PADDING = 3  # px tolerance around the notch
 ROTATE_PADDING = 6  # degree tolerance
 
 
+def _store_key(kind: str, captcha_id: str) -> str:
+    """Keep challenges of different types isolated in the shared store."""
+    return f"{kind}:{captcha_id}"
+
+
 # ---------------------------------------------------------------------------
 # Click
 # ---------------------------------------------------------------------------
@@ -65,7 +70,7 @@ def get_click_captcha(shape: bool = False) -> dict:
     data = capt.generate()
 
     captcha_id = store.gen_key()
-    mem_store.set(captcha_id, data.get_data())
+    mem_store.set(_store_key("click", captcha_id), data.get_data())
 
     resp = {
         "captcha_id": captcha_id,
@@ -85,7 +90,7 @@ def verify_click_captcha(
     captcha_id: Annotated[str, Form()],
 ) -> dict:
     """Verify clicked dots. `dots` format: 'x1,y1;x2,y2;...' (px, image coords)."""
-    answer = mem_store.pop(captcha_id)
+    answer = mem_store.pop(_store_key("click", captcha_id))
     if answer is None:
         raise HTTPException(status_code=403, detail="captcha expired or not found")
 
@@ -117,7 +122,7 @@ def get_slide_captcha(drag: bool = False) -> dict:
     data = capt.generate()
 
     captcha_id = store.gen_key()
-    mem_store.set(captcha_id, data.get_data())
+    mem_store.set(_store_key("slide", captcha_id), data.get_data())
 
     block = data.get_data()
     resp = {
@@ -139,7 +144,7 @@ def verify_slide_captcha(
     captcha_id: Annotated[str, Form()],
 ) -> dict:
     """Verify slide position. `point` format: 'x,y' (tile top-left, image coords)."""
-    block = mem_store.pop(captcha_id)
+    block = mem_store.pop(_store_key("slide", captcha_id))
     if block is None:
         raise HTTPException(status_code=403, detail="captcha expired or not found")
 
@@ -168,7 +173,7 @@ def get_rotate_captcha() -> dict:
     data = rotate_capt.generate()
 
     captcha_id = store.gen_key()
-    mem_store.set(captcha_id, data.get_data())
+    mem_store.set(_store_key("rotate", captcha_id), data.get_data())
 
     resp = {
         "captcha_id": captcha_id,
@@ -190,7 +195,7 @@ def verify_rotate_captcha(
     captcha_id: Annotated[str, Form()],
 ) -> dict:
     """Verify rotate angle (degrees)."""
-    block = mem_store.pop(captcha_id)
+    block = mem_store.pop(_store_key("rotate", captcha_id))
     if block is None:
         raise HTTPException(status_code=403, detail="captcha expired or not found")
 

@@ -10,6 +10,7 @@ build/
 coverage.xml
 htmlcov/
 .coverage
+.gstack/
 
 # Node
 node_modules/
